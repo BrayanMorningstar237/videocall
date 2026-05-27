@@ -1,0 +1,30 @@
+{
+  "name": "@rtc-engine/client",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "expo lint"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
+    "@rtc-engine/shared": "file:../shared",
+    "expo": "~52.0.0",
+    "expo-dev-client": "~5.0.20",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native": "0.76.0",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-web": "~0.19.13",
+    "react-native-webrtc": "^124.0.4",
+    "socket.io-client": "^4.8.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2"
+  }
+}

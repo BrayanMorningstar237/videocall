@@ -1,0 +1,7 @@
+{
+  "name": "@rtc-engine/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "callEvents.js",
+  "type": "commonjs"
+}

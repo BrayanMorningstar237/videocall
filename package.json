@@ -1,0 +1,14 @@
+{
+  "name": "rtc-engine",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "server": "npm run dev --workspace server",
+    "client": "npm start --workspace client"
+  }
+}
