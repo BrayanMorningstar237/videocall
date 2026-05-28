@@ -7,8 +7,14 @@ async function connectDatabase() {
     return;
   }
 
-  await mongoose.connect(env.MONGO_URI);
-  console.log('MongoDB connected');
+  try {
+    await mongoose.connect(env.MONGO_URI, {
+      serverSelectionTimeoutMS: 2000,
+    });
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.warn('MongoDB connection failed. Call history persistence is disabled.', error.message);
+  }
 }
 
 module.exports = { connectDatabase };
