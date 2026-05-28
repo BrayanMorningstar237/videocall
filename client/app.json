@@ -17,6 +17,22 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a0874df2-8708-40a2-a75a-8611379f3a6c"
+      }
+    },
+    "plugins": [
+      "@config-plugins/react-native-webrtc",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24
+          }
+        }
+      ]
+    ]
   }
 }
