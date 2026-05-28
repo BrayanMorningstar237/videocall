@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export function HomeScreen({
   callStatus,
+  error,
   receiverId,
   setReceiverId,
   setUserId,
@@ -12,6 +13,7 @@ export function HomeScreen({
     <View style={styles.container}>
       <Text style={styles.heading}>RTC Engine</Text>
       <Text style={styles.status}>Status: {callStatus}</Text>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <View style={styles.form}>
         <Text style={styles.label}>Your user ID</Text>
@@ -53,6 +55,12 @@ const styles = StyleSheet.create({
   },
   status: {
     color: '#cbd5e1',
+    marginTop: 8,
+  },
+  error: {
+    color: '#fecaca',
+    fontSize: 13,
+    fontWeight: '700',
     marginTop: 8,
   },
   form: {

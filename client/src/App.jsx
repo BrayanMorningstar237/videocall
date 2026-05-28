@@ -30,6 +30,7 @@ export default function App() {
       ) : (
         <HomeScreen
           callStatus={call.callStatus}
+          error={call.error}
           receiverId={receiverId}
           setReceiverId={setReceiverId}
           setUserId={setUserId}

@@ -44,9 +44,19 @@ export class CallManager {
       token: this.token,
     });
 
-    socket.on('connect', () => {
+    const registerCurrentUser = () => {
+      console.log('rtc socket registered', {
+        socketId: socket.id,
+        userId: this.userId,
+      });
       emitEvent(CALL_EVENTS.REGISTER_USER, { userId: this.userId });
-    });
+    };
+
+    socket.on('connect', registerCurrentUser);
+
+    if (socket.connected) {
+      registerCurrentUser();
+    }
 
     this.unsubscribers = [
       listenEvent(CALL_EVENTS.INCOMING_CALL, this.handleIncomingCall),
@@ -60,7 +70,12 @@ export class CallManager {
 
   startCall = async ({ receiverId, metadata } = {}) => {
     try {
-      const store = useCallStore.getState();
+      let store = useCallStore.getState();
+
+      if (store.callStatus === CALL_STATUS.ERROR) {
+        this.cleanupCall();
+        store = useCallStore.getState();
+      }
 
       if (!receiverId || receiverId === this.userId) {
         store.setError('Choose a different receiver user ID.');
@@ -289,6 +304,8 @@ export class CallManager {
   };
 
   handleCallError = ({ message }) => {
+    console.log('rtc call error', message);
+    this.cleanupCall();
     useCallStore.getState().setError(message);
   };
 }
