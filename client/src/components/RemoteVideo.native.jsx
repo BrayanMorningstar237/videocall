@@ -7,7 +7,7 @@ export function RemoteVideo({ stream, style }) {
 
   return (
     <RTCView
-      objectFit="cover"
+      objectFit="contain"
       streamURL={stream.toURL()}
       style={style}
     />

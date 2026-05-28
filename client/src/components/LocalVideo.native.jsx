@@ -8,7 +8,7 @@ export function LocalVideo({ stream, style }) {
   return (
     <RTCView
       mirror
-      objectFit="cover"
+      objectFit="contain"
       streamURL={stream.toURL()}
       style={style}
     />

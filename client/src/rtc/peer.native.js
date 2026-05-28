@@ -1,5 +1,6 @@
 import {
   mediaDevices,
+  MediaStream,
   RTCIceCandidate,
   RTCPeerConnection,
   RTCSessionDescription,
@@ -17,6 +18,7 @@ export function createPeer({
   iceServers = DEFAULT_ICE_SERVERS,
 } = {}) {
   const peer = new RTCPeerConnection({ iceServers });
+  const remoteStream = new MediaStream();
 
   if (localStream) {
     localStream.getTracks().forEach((track) => {
@@ -25,9 +27,15 @@ export function createPeer({
   }
 
   peer.ontrack = (event) => {
-    const [remoteStream] = event.streams;
-    if (remoteStream) {
+    if (event.track) {
+      remoteStream.addTrack(event.track);
       onRemoteStream?.(remoteStream);
+      return;
+    }
+
+    const [eventRemoteStream] = event.streams;
+    if (eventRemoteStream) {
+      onRemoteStream?.(eventRemoteStream);
     }
   };
 

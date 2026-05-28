@@ -18,7 +18,7 @@ export function RemoteVideo({ stream, style }) {
       autoPlay
       playsInline
       ref={videoRef}
-      style={{ ...style, objectFit: 'cover' }}
+      style={{ ...style, objectFit: 'contain' }}
     />
   );
 }
