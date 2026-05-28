@@ -18,7 +18,14 @@ export function RemoteVideo({ stream, style }) {
       autoPlay
       playsInline
       ref={videoRef}
-      style={{ ...style, objectFit: 'contain' }}
+      style={{
+        ...style,
+        backgroundColor: '#020617',
+        display: 'block',
+        height: '100%',
+        objectFit: 'contain',
+        width: '100%',
+      }}
     />
   );
 }

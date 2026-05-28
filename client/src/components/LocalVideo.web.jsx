@@ -19,7 +19,15 @@ export function LocalVideo({ stream, style }) {
       muted
       playsInline
       ref={videoRef}
-      style={{ ...style, objectFit: 'contain', transform: 'scaleX(-1)' }}
+      style={{
+        ...style,
+        backgroundColor: '#020617',
+        display: 'block',
+        height: '100%',
+        objectFit: 'contain',
+        transform: 'scaleX(-1)',
+        width: '100%',
+      }}
     />
   );
 }
