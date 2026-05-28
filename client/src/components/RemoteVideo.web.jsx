@@ -19,12 +19,12 @@ export function RemoteVideo({ stream, style }) {
       playsInline
       ref={videoRef}
       style={{
-        ...style,
         backgroundColor: '#020617',
         display: 'block',
         height: '100%',
         objectFit: 'contain',
         width: '100%',
+        ...style,
       }}
     />
   );

@@ -20,13 +20,13 @@ export function LocalVideo({ stream, style }) {
       playsInline
       ref={videoRef}
       style={{
-        ...style,
         backgroundColor: '#020617',
         display: 'block',
         height: '100%',
         objectFit: 'contain',
         transform: 'scaleX(-1)',
         width: '100%',
+        ...style,
       }}
     />
   );
