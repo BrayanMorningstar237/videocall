@@ -33,6 +33,7 @@ export class CallManager {
     this.peer = null;
     this.localStream = null;
     this.remoteUserId = null;
+    this.pendingIceCandidates = [];
     this.unsubscribers = [];
   }
 
@@ -59,8 +60,19 @@ export class CallManager {
 
   startCall = async ({ receiverId, metadata } = {}) => {
     try {
-      this.remoteUserId = receiverId;
       const store = useCallStore.getState();
+
+      if (!receiverId || receiverId === this.userId) {
+        store.setError('Choose a different receiver user ID.');
+        return;
+      }
+
+      if (store.callStatus !== CALL_STATUS.IDLE) {
+        console.log('rtc startCall ignored: call already in progress', store.callStatus);
+        return;
+      }
+
+      this.remoteUserId = receiverId;
       store.setCallStatus(CALL_STATUS.CONNECTING);
       store.setParticipants({ caller: this.userId, receiver: receiverId });
 
@@ -69,6 +81,7 @@ export class CallManager {
 
       this.peer = this.createConfiguredPeer(receiverId);
       const offer = await createOffer(this.peer);
+      console.log('rtc offer created', { from: this.userId, to: receiverId });
 
       emitCallUser({
         callerId: this.userId,
@@ -88,6 +101,11 @@ export class CallManager {
     try {
       const store = useCallStore.getState();
       const { caller, incomingOffer } = store;
+
+      if (!caller || !incomingOffer) {
+        return;
+      }
+
       this.remoteUserId = caller;
       store.setCallStatus(CALL_STATUS.CONNECTING);
 
@@ -96,6 +114,8 @@ export class CallManager {
 
       this.peer = this.createConfiguredPeer(caller);
       const answer = await createAnswer(this.peer, incomingOffer);
+      await this.flushPendingIceCandidates();
+      console.log('rtc answer created', { from: this.userId, to: caller });
 
       emitAnswerCall({
         callerId: caller,
@@ -161,6 +181,7 @@ export class CallManager {
     this.peer = null;
     this.localStream = null;
     this.remoteUserId = null;
+    this.pendingIceCandidates = [];
     useCallStore.getState().resetCall();
   };
 
@@ -176,6 +197,10 @@ export class CallManager {
       localStream: this.localStream,
       iceServers: this.iceServers,
       onRemoteStream: (stream) => {
+        console.log('rtc remote stream received', {
+          audioTracks: stream?.getAudioTracks?.().length ?? 0,
+          videoTracks: stream?.getVideoTracks?.().length ?? 0,
+        });
         useCallStore.getState().setRemoteStream(stream);
         useCallStore.getState().setCallStatus(CALL_STATUS.ACTIVE);
       },
@@ -187,6 +212,7 @@ export class CallManager {
         });
       },
       onConnectionStateChange: (state) => {
+        console.log('rtc peer connection state', state);
         if (state === 'failed' || state === 'disconnected') {
           useCallStore.getState().setCallStatus(CALL_STATUS.CONNECTING);
         }
@@ -195,6 +221,21 @@ export class CallManager {
   }
 
   handleIncomingCall = ({ callerId, receiverId, offer }) => {
+    const { callStatus } = useCallStore.getState();
+
+    if (callStatus !== CALL_STATUS.IDLE) {
+      console.log('rtc incoming call rejected: already busy', {
+        callerId,
+        callStatus,
+      });
+      emitRejectCall({
+        callerId,
+        receiverId: this.userId,
+      });
+      return;
+    }
+
+    console.log('rtc incoming call', { from: callerId, to: receiverId });
     useCallStore.getState().setIncomingCall({
       caller: callerId,
       receiver: receiverId,
@@ -208,11 +249,35 @@ export class CallManager {
     }
 
     await acceptAnswer(this.peer, answer);
+    await this.flushPendingIceCandidates();
+    console.log('rtc call accepted');
     useCallStore.getState().setCallStatus(CALL_STATUS.ACTIVE);
   };
 
   handleIceCandidate = async ({ candidate }) => {
+    if (!candidate) {
+      return;
+    }
+
+    if (!this.peer || !this.peer.remoteDescription) {
+      this.pendingIceCandidates.push(candidate);
+      console.log('rtc ice candidate queued', this.pendingIceCandidates.length);
+      return;
+    }
+
     await addIceCandidate(this.peer, candidate);
+  };
+
+  flushPendingIceCandidates = async () => {
+    if (!this.peer || !this.pendingIceCandidates.length) {
+      return;
+    }
+
+    const candidates = [...this.pendingIceCandidates];
+    this.pendingIceCandidates = [];
+
+    await Promise.all(candidates.map((candidate) => addIceCandidate(this.peer, candidate)));
+    console.log('rtc ice candidates flushed', candidates.length);
   };
 
   handleCallRejected = () => {
