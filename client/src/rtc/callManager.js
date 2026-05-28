@@ -27,7 +27,7 @@ import {
 export class CallManager {
   constructor({ socketUrl, userId, token, iceServers } = {}) {
     this.socketUrl = socketUrl;
-    this.userId = userId;
+    this.userId = userId?.trim();
     this.token = token;
     this.iceServers = iceServers;
     this.peer = null;
@@ -71,13 +71,14 @@ export class CallManager {
   startCall = async ({ receiverId, metadata } = {}) => {
     try {
       let store = useCallStore.getState();
+      const normalizedReceiverId = receiverId?.trim();
 
       if (store.callStatus === CALL_STATUS.ERROR) {
         this.cleanupCall();
         store = useCallStore.getState();
       }
 
-      if (!receiverId || receiverId === this.userId) {
+      if (!normalizedReceiverId || normalizedReceiverId === this.userId) {
         store.setError('Choose a different receiver user ID.');
         return;
       }
@@ -87,20 +88,20 @@ export class CallManager {
         return;
       }
 
-      this.remoteUserId = receiverId;
+      this.remoteUserId = normalizedReceiverId;
       store.setCallStatus(CALL_STATUS.CONNECTING);
-      store.setParticipants({ caller: this.userId, receiver: receiverId });
+      store.setParticipants({ caller: this.userId, receiver: normalizedReceiverId });
 
       this.localStream = await startLocalStream();
       store.setLocalStream(this.localStream);
 
-      this.peer = this.createConfiguredPeer(receiverId);
+      this.peer = this.createConfiguredPeer(normalizedReceiverId);
       const offer = await createOffer(this.peer);
-      console.log('rtc offer created', { from: this.userId, to: receiverId });
+      console.log('rtc offer created', { from: this.userId, to: normalizedReceiverId });
 
       emitCallUser({
         callerId: this.userId,
-        receiverId,
+        receiverId: normalizedReceiverId,
         offer,
         metadata,
       });

@@ -25,6 +25,7 @@ function registerCallSocketHandlers(io, socket) {
   socket.on(CALL_EVENTS.REGISTER_USER, ({ userId }) => {
     registerUser(userId, socket.id);
     socket.data.userId = userId;
+    console.log('rtc user registered', { userId, socketId: socket.id });
     io.emit(CALL_EVENTS.USER_ONLINE, { userId });
   });
 
@@ -32,6 +33,10 @@ function registerCallSocketHandlers(io, socket) {
     const delivered = emitToUser(io, payload.receiverId, CALL_EVENTS.INCOMING_CALL, payload);
 
     if (!delivered) {
+      console.log('rtc call delivery failed: receiver offline', {
+        callerId: payload.callerId,
+        receiverId: payload.receiverId,
+      });
       socket.emit(CALL_EVENTS.CALL_ERROR, {
         message: 'Receiver is not online.',
         receiverId: payload.receiverId,
@@ -77,6 +82,7 @@ function registerCallSocketHandlers(io, socket) {
     const userId = unregisterSocket(socket.id);
 
     if (userId) {
+      console.log('rtc user disconnected', { userId, socketId: socket.id });
       io.emit(CALL_EVENTS.USER_OFFLINE, { userId });
     }
   });
