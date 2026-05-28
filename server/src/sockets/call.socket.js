@@ -13,7 +13,7 @@ const {
 function emitToUser(io, userId, eventName, payload) {
   const socketId = getSocketId(userId);
 
-  if (!socketId) {
+  if (!socketId || !io.sockets.sockets.has(socketId)) {
     return false;
   }
 
@@ -23,14 +23,25 @@ function emitToUser(io, userId, eventName, payload) {
 
 function registerCallSocketHandlers(io, socket) {
   socket.on(CALL_EVENTS.REGISTER_USER, ({ userId }) => {
-    registerUser(userId, socket.id);
-    socket.data.userId = userId;
-    console.log('rtc user registered', { userId, socketId: socket.id });
-    io.emit(CALL_EVENTS.USER_ONLINE, { userId });
+    const normalizedUserId = userId?.trim();
+
+    if (!normalizedUserId) {
+      return;
+    }
+
+    registerUser(normalizedUserId, socket.id);
+    socket.data.userId = normalizedUserId;
+    console.log('rtc user registered', { userId: normalizedUserId, socketId: socket.id });
+    io.emit(CALL_EVENTS.USER_ONLINE, { userId: normalizedUserId });
   });
 
   socket.on(CALL_EVENTS.CALL_USER, async (payload) => {
     const delivered = emitToUser(io, payload.receiverId, CALL_EVENTS.INCOMING_CALL, payload);
+    console.log('rtc call delivery', {
+      callerId: payload.callerId,
+      delivered,
+      receiverId: payload.receiverId,
+    });
 
     if (!delivered) {
       console.log('rtc call delivery failed: receiver offline', {

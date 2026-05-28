@@ -237,7 +237,12 @@ export class CallManager {
   }
 
   handleIncomingCall = ({ callerId, receiverId, offer }) => {
-    const { callStatus } = useCallStore.getState();
+    let { callStatus } = useCallStore.getState();
+
+    if (callStatus === CALL_STATUS.ERROR) {
+      this.cleanupCall();
+      callStatus = useCallStore.getState().callStatus;
+    }
 
     if (callStatus !== CALL_STATUS.IDLE) {
       console.log('rtc incoming call rejected: already busy', {
